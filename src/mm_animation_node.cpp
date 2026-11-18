@@ -71,7 +71,15 @@ PackedFloat32Array MMAnimationNode::_process_animation_node(const PackedFloat64A
         animation_library->db_anim_index.is_empty() || animation_library->db_time_index.is_empty(),
         default_result,
         "Library not baked: " + library);
-    MMQueryOutput query_output = animation_library->query(*query_input);
+    int64_t keep_pose = -1;
+    if (has_current_animation && !has_ended && switch_margin > 0.f) {
+        const String playing = String(_current_animation_info.name).trim_prefix(String(library) + "/");
+        keep_pose = animation_library->pose_index_at(playing, _current_animation_info.time);
+    }
+    MMQueryOutput query_output = animation_library->query(*query_input, keep_pose, switch_margin);
+    if (query_output.keep_current) {
+        return _update_current_animation(p_test_only);
+    }
     if (query_output.matched_pose_index < 0) {
         // The query failed and reported why; keep playing the current animation.
         return _update_current_animation(p_test_only);
@@ -300,6 +308,7 @@ void MMAnimationNode::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "blending_enabled"), "set_blending_enabled", "get_blending_enabled");
 
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, transition_halflife);
+    BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, switch_margin, PROPERTY_HINT_RANGE, "0.0,0.9,0.01");
 }
 
 Dictionary MMAnimationNode::_output_to_dict(const MMQueryOutput& output) {

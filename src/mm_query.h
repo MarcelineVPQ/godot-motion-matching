@@ -20,6 +20,7 @@ struct MMQueryOutput {
     float cost;
     PackedFloat32Array matched_frame_data;
     Dictionary feature_costs;
+    bool keep_current = false; // the playing frame is good enough: keep playing it (switch margin)
 };
 
 class MMQueryInput : public RefCounted {

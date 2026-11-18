@@ -128,7 +128,7 @@ void MMAnimationLibrary::bake_data(const MMCharacter* p_character, const Animati
     node_indices = PackedInt32Array(_kd_tree->get_node_indices());
 }
 
-MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
+MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input, int64_t p_keep_pose, float p_keep_margin) {
     PackedFloat32Array query_vector = PackedFloat32Array();
     for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
         const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
@@ -142,7 +142,38 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
 
     MMQueryOutput result;
     result = _search_kd_tree(query_vector);
+    const int64_t pose_count = db_anim_index.size();
+    if (p_keep_pose >= 0 && p_keep_pose < pose_count && result.matched_pose_index >= 0 &&
+            result.matched_pose_index != p_keep_pose) {
+        const float best_cost = _compute_feature_costs(result.matched_pose_index, query_vector, nullptr);
+        const float keep_cost = _compute_feature_costs(static_cast<int>(p_keep_pose), query_vector, nullptr);
+        result.keep_current = best_cost >= keep_cost * (1.f - p_keep_margin);
+    }
     return std::move(result);
+}
+
+int64_t MMAnimationLibrary::pose_index_at(const StringName& p_animation, double p_time) const {
+    const int64_t anim_index = get_animation_list().find(p_animation);
+    if (anim_index < 0) {
+        return -1;
+    }
+    int64_t first = -1;
+    int64_t last = -1;
+    for (int64_t i = 0; i < db_anim_index.size(); i++) {
+        if (db_anim_index[i] == anim_index) {
+            if (first < 0) {
+                first = i;
+            }
+            last = i;
+        } else if (first >= 0) {
+            break;
+        }
+    }
+    if (first < 0) {
+        return -1;
+    }
+    const int64_t at = first + static_cast<int64_t>(p_time * get_sampling_rate());
+    return CLAMP(at, first, last);
 }
 
 int64_t MMAnimationLibrary::get_dim_count() const {

@@ -20,6 +20,9 @@ public:
     double get_playing_time() const;
     GETSET(real_t, query_frequency, 2.0f)
     GETSET(real_t, transition_halflife, 0.1f)
+    // Jump only when the best frame beats continuing the playing one by this share of its cost
+    // (0: always jump to the best, as before). Fewer needless jumps, fewer pops.
+    GETSET(real_t, switch_margin, 0.0f)
     GETSET(float, velocity_change_threshold, 50.0f)
     GETSET(float, facing_change_threshold, 0.5f)
 

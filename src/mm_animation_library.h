@@ -25,7 +25,11 @@ public:
     void bake_data(const MMCharacter* p_character, const AnimationMixer* p_player, const Skeleton3D* p_skeleton);
     // Script-facing bake (headless tools and tests); same as the editor's Bake button for this library.
     void bake(MMCharacter* p_character, AnimationMixer* p_mixer, Skeleton3D* p_skeleton);
-    MMQueryOutput query(const MMQueryInput& p_query_input);
+    // p_keep_pose: the frame playing now, or -1. If the best match does not beat it by p_keep_margin
+    // (a share of its cost), the output says keep_current (Holden: continuing is the default).
+    MMQueryOutput query(const MMQueryInput& p_query_input, int64_t p_keep_pose = -1, float p_keep_margin = 0.f);
+    // The database frame of p_animation (a name in this library) at p_time, or -1.
+    int64_t pose_index_at(const StringName& p_animation, double p_time) const;
     int64_t get_dim_count() const;
     // Length of the part of p_animation that goes into the database (see end_margin).
     double get_baked_length(const Ref<Animation>& p_animation) const;
