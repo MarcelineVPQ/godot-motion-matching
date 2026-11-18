@@ -6,8 +6,10 @@
 
 class StatsAccumulator {
 private:
-    float sum;
-    float sum_of_squares;
+    // Double precision: the variance is a difference of two large sums and
+    // loses most of its digits in float over thousands of poses.
+    double sum;
+    double sum_of_squares;
     float max_value;
     float min_value;
     int count;
@@ -19,14 +21,14 @@ public:
 
     void add_sample(float sample) {
         sum += sample;
-        sum_of_squares += sample * sample;
+        sum_of_squares += static_cast<double>(sample) * sample;
         max_value = std::max(max_value, sample);
         min_value = std::min(min_value, sample);
         count++;
     }
 
     float get_mean() const {
-        return sum / count;
+        return static_cast<float>(sum / count);
     }
 
     float get_max() const {
@@ -38,12 +40,12 @@ public:
     }
 
     float get_standard_deviation() const {
-        const float mean = get_mean();
-        const float variance = (sum_of_squares / count) - (mean * mean);
+        const double mean = sum / count;
+        const double variance = (sum_of_squares / count) - (mean * mean);
         if (variance < FLT_EPSILON) {
             return 0.0f;
         }
-        return sqrt(variance);
+        return static_cast<float>(sqrt(variance));
     }
 
     void reset() {
