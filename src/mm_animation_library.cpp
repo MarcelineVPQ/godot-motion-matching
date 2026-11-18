@@ -6,6 +6,8 @@
 #include "math/stats.hpp"
 #include "mm_character.h"
 
+#include <godot_cpp/templates/hash_map.hpp>
+
 void MMAnimationLibrary::bake_data(const MMCharacter* p_character, const AnimationMixer* p_player, const Skeleton3D* p_skeleton) {
     ERR_FAIL_COND(features.is_empty());
 
@@ -94,6 +96,20 @@ void MMAnimationLibrary::bake_data(const MMCharacter* p_character, const Animati
             feature_std_devs.set(feature_element_index, stats[feature_index][feature_element_index].get_standard_deviation());
             feature_mins.set(feature_element_index, stats[feature_index][feature_element_index].get_min());
             feature_maxes.set(feature_element_index, stats[feature_index][feature_element_index].get_max());
+        }
+
+        // One spread per normalisation group: the average of its numbers' spreads (Holden's
+        // normalize_feature).
+        HashMap<int64_t, double> group_sum;
+        HashMap<int64_t, int64_t> group_count;
+        for (int64_t d = 0; d < feature->get_dimension_count(); d++) {
+            const int64_t g = feature->get_normalization_group(d);
+            group_sum[g] = (group_sum.has(g) ? group_sum[g] : 0.0) + feature_std_devs[d];
+            group_count[g] = (group_count.has(g) ? group_count[g] : 0) + 1;
+        }
+        for (int64_t d = 0; d < feature->get_dimension_count(); d++) {
+            const int64_t g = feature->get_normalization_group(d);
+            feature_std_devs.set(d, static_cast<float>(group_sum[g] / group_count[g]));
         }
 
         feature->set_means(feature_means);

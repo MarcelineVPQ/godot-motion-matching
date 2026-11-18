@@ -54,6 +54,12 @@ protected:
 private:
     uint32_t _get_point_dimension_count() const;
 
+public:
+    // Groups: horizontal positions, height, facing (each across all points).
+    int64_t get_normalization_group(int64_t p_dim) const override;
+
+private:
+
     int _root_bone{-1};
     NodePath _root_bone_path;
     int _root_position_track{-1};

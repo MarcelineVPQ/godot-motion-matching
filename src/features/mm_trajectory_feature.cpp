@@ -342,3 +342,14 @@ uint32_t MMTrajectoryFeature::_get_point_dimension_count() const {
     }
     return dimensions;
 }
+
+int64_t MMTrajectoryFeature::get_normalization_group(int64_t p_dim) const {
+    const int64_t in_point = p_dim % _get_point_dimension_count();
+    if (include_height && in_point == 1) {
+        return 1;
+    }
+    if (include_facing && in_point == static_cast<int64_t>(_get_point_dimension_count()) - 1) {
+        return 2;
+    }
+    return 0;
+}

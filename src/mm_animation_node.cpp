@@ -281,7 +281,17 @@ void MMAnimationNode::_validate_property(PropertyInfo& p_property) const {
     AnimationNodeExtension::_validate_property(p_property);
 }
 
+StringName MMAnimationNode::get_playing_animation() const {
+    return _current_animation_info.name;
+}
+
+double MMAnimationNode::get_playing_time() const {
+    return _current_animation_info.time;
+}
+
 void MMAnimationNode::_bind_methods() {
+    ClassDB::bind_method(D_METHOD("get_playing_animation"), &MMAnimationNode::get_playing_animation);
+    ClassDB::bind_method(D_METHOD("get_playing_time"), &MMAnimationNode::get_playing_time);
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::STRING_NAME, library);
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, query_frequency);
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, velocity_change_threshold);

@@ -13,6 +13,11 @@ class MMAnimationNode : public AnimationNodeExtension {
 
 public:
     GETSET(StringName, library);
+
+    // What is playing now (the newest clip, without the library prefix) and where in it: so a
+    // game can look up per-frame data baked for the clips, such as foot contacts.
+    StringName get_playing_animation() const;
+    double get_playing_time() const;
     GETSET(real_t, query_frequency, 2.0f)
     GETSET(real_t, transition_halflife, 0.1f)
     GETSET(float, velocity_change_threshold, 50.0f)

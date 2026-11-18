@@ -25,8 +25,15 @@ void MMBoneDataFeature::setup_for_animation(Ref<Animation> animation) {
 }
 
 int64_t MMBoneDataFeature::get_dimension_count() const {
-    return bone_names.size() * 3;
+    return bone_names.size() * (include_velocity ? 6 : 3);
 }
+
+int64_t MMBoneDataFeature::get_normalization_group(int64_t p_dim) const {
+    return p_dim / 3;
+}
+
+// Velocities in the bake: finite difference over one 60 Hz frame (the runtime differences frames).
+static constexpr double VELOCITY_DT = 1.0 / 60.0;
 
 PackedFloat32Array MMBoneDataFeature::bake_animation_pose(Ref<Animation> p_animation, double time) const {
     PackedFloat32Array result;
@@ -37,6 +44,17 @@ PackedFloat32Array MMBoneDataFeature::bake_animation_pose(Ref<Animation> p_anima
         result.append(bone_state.pos.x);
         result.append(bone_state.pos.y);
         result.append(bone_state.pos.z);
+    }
+    if (include_velocity) {
+        for (int64_t i = 0; i < bone_names.size(); ++i) {
+            const double t0 = MAX(0.0, time - VELOCITY_DT);
+            const double t1 = t0 + VELOCITY_DT;
+            const Vector3 vel = (_sample_bone_state(p_animation, t1, bone_names[i]).pos -
+                                 _sample_bone_state(p_animation, t0, bone_names[i]).pos) / VELOCITY_DT;
+            result.append(vel.x);
+            result.append(vel.y);
+            result.append(vel.z);
+        }
     }
     return result;
 }
@@ -59,6 +77,20 @@ PackedFloat32Array MMBoneDataFeature::evaluate_runtime_data(const MMQueryInput& 
         result.append(pos.y);
         result.append(pos.z);
     }
+    if (include_velocity) {
+        for (int64_t i = 0; i < bone_names.size(); ++i) {
+            if (!p_query_input.skeleton_state.bone_name_to_index.has(bone_names[i])) {
+                result.append(0.f);
+                result.append(0.f);
+                result.append(0.f);
+                continue;
+            }
+            const Vector3& vel = p_query_input.skeleton_state.find_bone_state(bone_names[i]).vel;
+            result.append(vel.x);
+            result.append(vel.y);
+            result.append(vel.z);
+        }
+    }
     return result;
 }
 
@@ -73,7 +105,7 @@ void MMBoneDataFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, cons
     memcpy(dernomalized_data, p_data, sizeof(float) * get_dimension_count());
     denormalize(dernomalized_data);
 
-    for (int64_t i = 0; i < get_dimension_count(); i += 3) {
+    for (int64_t i = 0; i < bone_names.size() * 3; i += 3) {  // positions only
         Ref<SphereMesh> sphere_mesh;
         sphere_mesh.instantiate();
         sphere_mesh->set_radius(0.05);
@@ -92,6 +124,7 @@ void MMBoneDataFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, cons
 
 void MMBoneDataFeature::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMBoneDataFeature, Variant::PACKED_STRING_ARRAY, bone_names);
+    BINDER_PROPERTY_PARAMS(MMBoneDataFeature, Variant::BOOL, include_velocity);
 }
 
 BoneState MMBoneDataFeature::_sample_bone_state(Ref<Animation> p_animation, double p_time, const String& p_bone_path) const {

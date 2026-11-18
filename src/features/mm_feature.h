@@ -31,6 +31,11 @@ public:
     virtual void setup_for_animation(Ref<Animation> animation) {};
 
     virtual int64_t get_dimension_count() const = 0;
+    // Numbers that belong together (a bone's three position numbers, all trajectory positions) share
+    // one spread in the standard normalisation, as in Holden et al. 2020: each number scaled by its
+    // own spread lets small-spread, low-information numbers count as much as the big ones.
+    // Default: each number is its own group.
+    virtual int64_t get_normalization_group(int64_t p_dim) const { return p_dim; }
 
     virtual PackedFloat32Array bake_animation_pose(Ref<Animation> p_animation, double time) const = 0;
 

@@ -25,6 +25,11 @@ public:
     virtual void display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D p_transform, const float* p_data) const override;
 
     GETSET(PackedStringArray, bone_names, PackedStringArray());
+    // Also match each bone's velocity (Holden et al. 2020: foot and hip velocities separate a walk
+    // from a jog, which positions barely do). Layout: all positions, then all velocities.
+    GETSET(bool, include_velocity, false);
+    // Groups: each bone's position, each bone's velocity.
+    int64_t get_normalization_group(int64_t p_dim) const override;
 
 protected:
     static void _bind_methods();
