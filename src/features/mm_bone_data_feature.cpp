@@ -14,6 +14,11 @@ void MMBoneDataFeature::setup_skeleton(const MMCharacter* p_character, const Ani
     _skeleton_path = p_player->get_root_motion_track().get_concatenated_names();
     const StringName root_bone_name = p_player->get_root_motion_track().get_concatenated_subnames();
     _root_bone_index = p_skeleton->find_bone(root_bone_name);
+    for (int64_t i = 0; i < bone_names.size(); ++i) {
+        if (p_skeleton->find_bone(bone_names[i]) == -1) {
+            ERR_PRINT(vformat("MMBoneDataFeature: bone \"%s\" is not in skeleton \"%s\".", bone_names[i], p_skeleton->get_name()));
+        }
+    }
 }
 
 void MMBoneDataFeature::setup_for_animation(Ref<Animation> animation) {
@@ -39,6 +44,13 @@ PackedFloat32Array MMBoneDataFeature::bake_animation_pose(Ref<Animation> p_anima
 PackedFloat32Array MMBoneDataFeature::evaluate_runtime_data(const MMQueryInput& p_query_input) const {
     PackedFloat32Array result;
     for (int64_t i = 0; i < bone_names.size(); ++i) {
+        if (!p_query_input.skeleton_state.bone_name_to_index.has(bone_names[i])) {
+            ERR_PRINT_ONCE(vformat("MMBoneDataFeature: bone \"%s\" is not in the character's skeleton.", bone_names[i]));
+            result.append(0.f);
+            result.append(0.f);
+            result.append(0.f);
+            continue;
+        }
         const BoneState& bone_state = p_query_input.skeleton_state.find_bone_state(bone_names[i]);
         const Vector3& pos = bone_state.pos;
         const Quaternion& rot = bone_state.rot;
