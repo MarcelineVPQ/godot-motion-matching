@@ -249,7 +249,7 @@ float MMTrajectoryFeature::calculate_normalized_weight(int64_t p_feature_dim) co
 
     const uint32_t point_dim = _get_point_dimension_count();
 
-    const bool is_height = include_height && (p_feature_dim % point_dim) == 2;
+    const bool is_height = include_height && (p_feature_dim % point_dim) == 1;
     const bool is_facing = include_facing && (p_feature_dim % point_dim) == (include_height ? 3 : 2);
 
     if (is_height) {
