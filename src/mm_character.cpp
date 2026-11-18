@@ -254,6 +254,7 @@ void MMCharacter::_fall_to_floor(MMTrajectoryPoint& point, float delta_t) {
 }
 
 void MMCharacter::_fill_query_input(MMQueryInput& input) {
+    input.target_velocity = target_velocity;
     input.controller_velocity = get_velocity();
     input.trajectory = get_trajectory();
     input.trajectory_history = get_trajectory_history();
