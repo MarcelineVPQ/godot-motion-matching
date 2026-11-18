@@ -1,0 +1,13 @@
+; Test project for the motion matching extension. tests/run_tests.sh copies it to a
+; temporary folder and adds the extension library before each run.
+config_version=5
+
+[application]
+config/name="motion-matching-tests"
+
+[editor_plugins]
+enabled=PackedStringArray("res://addons/mm_editor_cases/plugin.cfg")
+
+[physics]
+; fix09 needs a tick rate above 60 Hz.
+common/physics_ticks_per_second=120
