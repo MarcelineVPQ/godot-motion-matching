@@ -58,7 +58,6 @@ void initialize_motion_matching_module(ModuleInitializationLevel p_level) {
 
         EditorPlugins::add_by_type<MMEditorPlugin>();
         EditorPlugins::add_by_type<AnimationTreeHandlerPlugin>();
-        EditorPlugins::add_by_type<AnimationPostImportPlugin>();
     }
 }
 
