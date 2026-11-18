@@ -18,8 +18,10 @@ void MMAnimationLibrary::bake_data(const MMCharacter* p_character, const Animati
     for (auto i = 0; i < features.size(); ++i) {
         MMFeature* f = Object::cast_to<MMFeature>(features[i]);
         ERR_FAIL_NULL_MSG(f, vformat("Feature %d is empty. Set a feature or remove the empty slot, then bake again.", i));
-        dim_count += f->get_dimension_count();
+        // Set up first: setup_skeleton can change the dimension count (the trajectory feature takes
+        // its point counts from the character).
         f->setup_skeleton(p_character, p_player, p_skeleton);
+        dim_count += f->get_dimension_count();
     }
 
     TypedArray<StringName> animation_list = get_animation_list();
@@ -370,7 +372,16 @@ MMQueryOutput MMAnimationLibrary::_search_kd_tree(const PackedFloat32Array& p_qu
     return result;
 }
 
+void MMAnimationLibrary::bake(MMCharacter* p_character, AnimationMixer* p_mixer, Skeleton3D* p_skeleton) {
+    ERR_FAIL_NULL_MSG(p_character, "bake: no character.");
+    ERR_FAIL_NULL_MSG(p_mixer, "bake: no animation mixer.");
+    ERR_FAIL_NULL_MSG(p_skeleton, "bake: no skeleton.");
+    bake_data(p_character, p_mixer, p_skeleton);
+}
+
 void MMAnimationLibrary::_bind_methods() {
+    ClassDB::bind_method(D_METHOD("bake", "character", "mixer", "skeleton"), &MMAnimationLibrary::bake);
+    ClassDB::bind_method(D_METHOD("needs_baking"), &MMAnimationLibrary::needs_baking);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::ARRAY, features, PROPERTY_HINT_TYPE_STRING, UtilityFunctions::str(Variant::OBJECT) + '/' + UtilityFunctions::str(Variant::BASIS) + ":MMFeature");
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::FLOAT, sampling_rate);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::BOOL, include_cost_results);
