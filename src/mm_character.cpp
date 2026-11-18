@@ -34,8 +34,10 @@ void MMCharacter::_update_character(float delta_t) {
 
     // Rotate the character to face the direction of velocity
     if (!is_strafing) {
-        Vector3 direction = new_velocity.normalized();
-        set_rotation(Vector3(0.0f, Math::atan2(direction.x, direction.z), 0.0f));
+        // Keep the current facing when there is no ground velocity (standing still, falling straight down).
+        if (Vector2(new_velocity.x, new_velocity.z).length_squared() > SMALL_NUMBER) {
+            set_rotation(Vector3(0.0f, Math::atan2(new_velocity.x, new_velocity.z), 0.0f));
+        }
     } else {
         set_rotation(Vector3(0.0f, strafe_facing, 0.0f));
     }
@@ -78,11 +80,13 @@ MMTrajectoryPoint MMCharacter::_get_current_trajectory_point() const {
     point.collision_state.floor_normal = get_floor_normal();
     point.collision_state.wall_normal = get_wall_normal();
 
-    if (get_velocity().length_squared() > SMALL_NUMBER && !is_strafing) {
-        Vector3 direction = get_velocity().normalized();
-        point.facing_angle = Math::atan2(direction.x, direction.z);
-    } else {
+    if (is_strafing) {
         point.facing_angle = strafe_facing;
+    } else if (Vector2(point.velocity.x, point.velocity.z).length_squared() > SMALL_NUMBER) {
+        point.facing_angle = Math::atan2(point.velocity.x, point.velocity.z);
+    } else {
+        // Standing still: keep facing where the character faces.
+        point.facing_angle = get_rotation().y;
     }
     return point;
 }
@@ -108,12 +112,11 @@ void MMCharacter::_generate_trajectory(float delta_time) {
         point.velocity = (Vector3)result[0] + up_velocity;
         spring_acceleration = result[1];
 
-        // Update facing
-        if (point.velocity.length_squared() > SMALL_NUMBER && !is_strafing) {
-            Vector3 direction = point.velocity.normalized();
-            point.facing_angle = Math::atan2(direction.x, direction.z);
-        } else {
+        // Update facing. Without ground velocity the point keeps the previous facing.
+        if (is_strafing) {
             point.facing_angle = strafe_facing;
+        } else if (Vector2(point.velocity.x, point.velocity.z).length_squared() > SMALL_NUMBER) {
+            point.facing_angle = Math::atan2(point.velocity.x, point.velocity.z);
         }
 
         if (check_environment) {
