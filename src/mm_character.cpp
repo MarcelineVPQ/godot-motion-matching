@@ -410,6 +410,10 @@ void MMCharacter::_notification(int p_what) {
             return;
         }
 
+        // _update_history walks back history_point_count steps of history_delta_time, so the
+        // buffer must hold that many physics frames (plus one frame of rounding per step).
+        const uint32_t frames_per_step = static_cast<uint32_t>(Math::ceil(history_delta_time * Engine::get_singleton()->get_physics_ticks_per_second())) + 1;
+        _history_buffer.resize(MAX(HISTORY_BUFFER_SIZE, static_cast<size_t>(history_point_count * frames_per_step + 1)));
         while (!_history_buffer.is_full()) {
             _history_buffer.push(_get_current_trajectory_point());
         }
