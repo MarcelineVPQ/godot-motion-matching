@@ -347,15 +347,12 @@ MMQueryOutput MMAnimationLibrary::_search_kd_tree(const PackedFloat32Array& p_qu
     ERR_FAIL_INDEX_V_MSG(best_pose_index, db_anim_index.size(), MMQueryOutput(), "No pose found. Bake the library again.");
 
     MMQueryOutput result;
-    String library_name = get_path().get_file().get_basename() + "/";
-    if (library_name.is_empty()) {
-        library_name = get_name() + "/";
-    }
     TypedArray<StringName> animation_list = get_animation_list();
     ERR_FAIL_INDEX_V_MSG(db_anim_index[best_pose_index], animation_list.size(), MMQueryOutput(), "The library's animations changed. Bake the library again.");
 
     result.matched_pose_index = best_pose_index;
-    result.animation_match = library_name + UtilityFunctions::str(animation_list[db_anim_index[best_pose_index]]);
+    // Bare animation name: only the AnimationMixer knows the name this library is added under.
+    result.animation_match = UtilityFunctions::str(animation_list[db_anim_index[best_pose_index]]);
     result.time_match = db_time_index[best_pose_index];
 
     if (include_cost_results) {

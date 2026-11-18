@@ -71,11 +71,13 @@ PackedFloat32Array MMAnimationNode::_process_animation_node(const PackedFloat64A
         animation_library->db_anim_index.is_empty() || animation_library->db_time_index.is_empty(),
         default_result,
         "Library not baked: " + library);
-    const MMQueryOutput query_output = animation_library->query(*query_input);
+    MMQueryOutput query_output = animation_library->query(*query_input);
     if (query_output.matched_pose_index < 0) {
         // The query failed and reported why; keep playing the current animation.
         return _update_current_animation(p_test_only);
     }
+    // The AnimationTree names the clip "<name the library is added under>/<animation>".
+    query_output.animation_match = String(library) + "/" + query_output.animation_match;
 
     const bool is_same_animation = query_output.animation_match == _last_query_output.animation_match;
     const bool is_same_time = _time_distance(_current_animation_info, query_output.time_match, _current_animation_info.time) < QUERY_TIME_ERROR;
