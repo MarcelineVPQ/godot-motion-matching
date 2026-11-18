@@ -72,6 +72,10 @@ PackedFloat32Array MMAnimationNode::_process_animation_node(const PackedFloat64A
         PackedFloat32Array(),
         "Library not baked: " + library);
     const MMQueryOutput query_output = animation_library->query(*query_input);
+    if (query_output.matched_pose_index < 0) {
+        // The query failed and reported why; keep playing the current animation.
+        return _update_current_animation(p_test_only);
+    }
 
     const bool is_same_animation = query_output.animation_match == _last_query_output.animation_match;
     const bool is_same_time = _time_distance(_current_animation_info, query_output.time_match, _current_animation_info.time) < QUERY_TIME_ERROR;

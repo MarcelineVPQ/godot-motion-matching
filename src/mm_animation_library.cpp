@@ -312,6 +312,9 @@ MMQueryOutput MMAnimationLibrary::_search_naive(const PackedFloat32Array& p_quer
 }
 
 MMQueryOutput MMAnimationLibrary::_search_kd_tree(const PackedFloat32Array& p_query) {
+    ERR_FAIL_COND_V_MSG(p_query.is_empty() || motion_data.is_empty() || motion_data.size() % p_query.size() != 0,
+                        MMQueryOutput(),
+                        "Motion data does not match the library features. Bake the library again.");
     if (!_kd_tree) {
         int32_t dim_count = p_query.size();
         _kd_tree = std::make_unique<KDTree>(dim_count);
@@ -334,6 +337,7 @@ MMQueryOutput MMAnimationLibrary::_search_kd_tree(const PackedFloat32Array& p_qu
         motion_data.ptr(),
         p_query.ptr(),
         dimension_weights);
+    ERR_FAIL_INDEX_V_MSG(best_pose_index, db_anim_index.size(), MMQueryOutput(), "No pose found. Bake the library again.");
 
     MMQueryOutput result;
     String library_name = get_path().get_file().get_basename() + "/";
@@ -341,6 +345,7 @@ MMQueryOutput MMAnimationLibrary::_search_kd_tree(const PackedFloat32Array& p_qu
         library_name = get_name() + "/";
     }
     TypedArray<StringName> animation_list = get_animation_list();
+    ERR_FAIL_INDEX_V_MSG(db_anim_index[best_pose_index], animation_list.size(), MMQueryOutput(), "The library's animations changed. Bake the library again.");
 
     result.matched_pose_index = best_pose_index;
     result.animation_match = library_name + UtilityFunctions::str(animation_list[db_anim_index[best_pose_index]]);
