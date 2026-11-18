@@ -277,8 +277,9 @@ void MMCharacter::_update_query() {
 }
 
 void MMCharacter::_apply_root_motion() {
+    // Renormalised every frame: multiplying the turn on frame after frame lets rounding pile up.
     skeleton->set_quaternion(
-        skeleton->get_quaternion() * animation_tree->get_root_motion_rotation());
+        (skeleton->get_quaternion() * animation_tree->get_root_motion_rotation()).normalized());
 
     const Vector3 movement_delta = (animation_tree->get_root_motion_rotation_accumulator().inverse() *
                                     skeleton->get_quaternion())
