@@ -313,6 +313,12 @@ void MMCharacter::_reset_skeleton_state() {
 }
 
 void MMCharacter::_update_skeleton_state(double delta_t) {
+    if (_skeleton_state.bone_states.size() != static_cast<size_t>(skeleton->get_bone_count())) {
+        // The skeleton was set or changed after ready.
+        _skeleton_state = SkeletonState(skeleton);
+        _reset_skeleton_state();
+    }
+
     SkeletonState current_state(skeleton);
     _fill_current_skeleton_state(current_state);
 
@@ -391,7 +397,7 @@ void MMCharacter::_notification(int p_what) {
 
         _update_character(delta);
 
-        if (!skeleton) {
+        if (!skeleton || !animation_tree) {
             return;
         }
 
