@@ -27,6 +27,6 @@ protected:
 private:
     String _animation_lib;
     String _animation_name;
-    int32_t _pose_index;
+    int32_t _pose_index = 0;
 };
 #endif // MM_EDITOR_GIZMO_PLUGIN_H

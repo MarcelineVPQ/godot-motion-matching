@@ -162,8 +162,15 @@ double MMAnimationLibrary::get_baked_length(const Ref<Animation>& p_animation) c
 void MMAnimationLibrary::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D& p_transform, String p_animation_name, int32_t p_pose_index) const {
     const int32_t anim_index = get_animation_list().find(p_animation_name);
     const int32_t dim_count = get_dim_count();
+    // Nothing to show until an animation of a baked library is picked.
+    if (anim_index < 0 || anim_index >= db_pose_offset.size() || p_pose_index < 0) {
+        return;
+    }
     int32_t start_frame_index = db_pose_offset[anim_index];
     int32_t frame_index = start_frame_index + p_pose_index * dim_count;
+    if (frame_index + dim_count > motion_data.size()) {
+        return;
+    }
 
     for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
         const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
