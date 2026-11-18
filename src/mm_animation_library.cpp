@@ -17,6 +17,7 @@ void MMAnimationLibrary::bake_data(const MMCharacter* p_character, const Animati
     int32_t dim_count = 0;
     for (auto i = 0; i < features.size(); ++i) {
         MMFeature* f = Object::cast_to<MMFeature>(features[i]);
+        ERR_FAIL_NULL_MSG(f, vformat("Feature %d is empty. Set a feature or remove the empty slot, then bake again.", i));
         dim_count += f->get_dimension_count();
         f->setup_skeleton(p_character, p_player, p_skeleton);
     }
@@ -130,6 +131,9 @@ int64_t MMAnimationLibrary::get_dim_count() const {
     int64_t dim_count = 0;
     for (auto i = 0; i < features.size(); ++i) {
         MMFeature* f = Object::cast_to<MMFeature>(features[i]);
+        if (!f) {
+            continue;
+        }
         dim_count += f->get_dimension_count();
     }
 
@@ -163,6 +167,9 @@ void MMAnimationLibrary::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, con
 
     for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
         const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+        if (!feature) {
+            continue;
+        }
         const float* frame_motion_data = motion_data.ptr() + frame_index;
         feature->display_data(p_gizmo, p_transform, frame_motion_data);
         frame_index += feature->get_dimension_count();
@@ -173,6 +180,9 @@ int64_t MMAnimationLibrary::compute_features_hash() const {
     int64_t hash = 0;
     for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
         MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+        if (!feature) {
+            continue;
+        }
         TypedArray<Dictionary> feature_properties = feature->get_property_list();
         for (int64_t property_index = 0; property_index < feature_properties.size(); property_index++) {
             // TODO: This needs work, but works for now
