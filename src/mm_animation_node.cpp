@@ -38,6 +38,11 @@ PackedFloat32Array MMAnimationNode::_process_animation_node(const PackedFloat64A
 
     const MMQueryInput* query_input = Object::cast_to<MMQueryInput>(get_parameter("motion_matching_input"));
 
+    if (!query_input || !query_input->is_valid()) {
+        _time_since_last_query += delta_time;
+        return _update_current_animation(p_test_only);
+    }
+
     // We run queries periodically, or when the animation is about to end
     const bool has_current_animation = !_last_query_output.animation_match.is_empty();
     const bool should_force_query = _should_force_query(query_input, delta_time);
@@ -52,11 +57,6 @@ PackedFloat32Array MMAnimationNode::_process_animation_node(const PackedFloat64A
         should_force_query;
 
     if (!should_query) {
-        _time_since_last_query += delta_time;
-        return _update_current_animation(p_test_only);
-    }
-
-    if (!query_input || !query_input->is_valid()) {
         _time_since_last_query += delta_time;
         return _update_current_animation(p_test_only);
     }
